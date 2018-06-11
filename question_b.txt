@@ -1,0 +1,90 @@
+1. What improvements can be made? 
+
+First of all need re prevent duplication of code by moving same code from methods SolveBinomial and SolveTrinomial. (how to do in in next answers)
+
+
+2. What SOLID principle(s) can help here?
+
+Even if we would have no duplication I don't like that we doins sending email in this classes at all, becuase I think that such things as sending email or other communication things should be in separate class.
+So we need to create new class like "EmailService" with method "Send". And add to classes A and B private properties "EmailService" and fill it in constructor.
+
+Also I don't like that we use messages and emails as hardcoded strings. It's hard to support. Better to add it to config file or db.
+
+Same with using args[0] in our classes, it's hard to support, for example if we will deside to use this code in class library for console application and for some other(web, desctop) we will have problems and will have to refactor it. We should use args[0] only in "main" method.
+
+
+
+
+3. What is the best architectural decision? 
+
+We need to use Deppendenty injection to have abbility create A and B services without "manual" creating of "EmailService".
+Also in this case if we will deside to use some new method of sending email we just create new EmailService(for example MandrillEmailService) which will inherid IEmailService interface.
+Profits:
+	1. In other code we will not do any changes
+	2. We will have abbility by minimum changes switch beetween email services(for example if Mandrill API is down we switch to old sending of email).
+
+
+
+So we shoul get something like:
+
+
+
+public interface IEmailService
+{
+	void Send();
+}
+
+
+public class EmailService : IEmailService
+{
+	public EmailService(){
+	}
+	public void Send(string[] from, string[] to, string message){
+		..... sending of email code ....;
+
+	}
+}
+
+public interface IA
+{
+	void SolveBinomial();
+}
+
+public A : IA
+{
+	private IEmailService _emailService {get;set}
+	public A(IEmailService emailService){
+		_emailService = emailService ;
+	}	
+	public void SolveBinomial(){
+		// Do work ...
+ 
+    		// ...
+ 
+    		// Send email ...
+
+		_emailService.Send( .... );
+	}
+}
+
+public interface IB
+{
+	void SolveTrinomial();
+}
+
+public B : IB
+{
+	private IEmailService _emailService {get;set}
+	public B(IEmailService emailService){
+		_emailService = emailService ;
+	}	
+	public void SolveTrinomial(){
+		// Do work ...
+ 
+    		// ...
+ 
+    		// Send email ...
+
+		_emailService.Send( .... );
+	}
+}
